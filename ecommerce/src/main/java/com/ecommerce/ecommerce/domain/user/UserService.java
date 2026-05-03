@@ -28,6 +28,7 @@ public class UserService {
                 .username(dto.username())
                 .email(dto.email())
                 .senha(encoder.encode(dto.senha()))
+                .role("USER")
                 .created(LocalDateTime.now())
                 .build();
 
@@ -47,6 +48,6 @@ public class UserService {
             throw new RuntimeException("Senha inválida");
         }
 
-        return jwtService.gerarToken(user.getEmail());
+        return jwtService.gerarToken(user.getEmail(), user.getRole());
     }
 }

@@ -12,7 +12,7 @@ import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import com.ecommerce.ecommerce.security.JwtService;
+
 import java.io.IOException;
 import java.util.Optional;
 
@@ -30,31 +30,45 @@ public class JwtFilter extends OncePerRequestFilter {
             FilterChain filterChain
     ) throws ServletException, IOException {
 
-        String header = request.getHeader("Authorization");
+        String header =
+                request.getHeader("Authorization");
 
-        if (header == null || !header.startsWith("Bearer ")) {
-            filterChain.doFilter(request, response);
+        if (header == null ||
+                !header.startsWith("Bearer ")) {
+
+            filterChain.doFilter(
+                    request,
+                    response
+            );
             return;
         }
 
-        String token = header.replace("Bearer ", "");
+        String token =
+                header.replace("Bearer ", "");
 
         try {
 
-            String email = jwtService.getEmail(token);
+            String email =
+                    jwtService.getEmail(token);
 
             Optional<User> optionalUser =
                     repository.findByEmail(email);
 
             if (optionalUser.isPresent()) {
 
-                User user = optionalUser.get();
+                User user =
+                        optionalUser.get();
+
+                String role =
+                        user.getRole();
 
                 UsernamePasswordAuthenticationToken auth =
                         new UsernamePasswordAuthenticationToken(
                                 user.getEmail(),
                                 null,
-                                AuthorityUtils.NO_AUTHORITIES
+                                AuthorityUtils.createAuthorityList(
+                                        "ROLE_" + role
+                                )
                         );
 
                 SecurityContextHolder
@@ -64,10 +78,15 @@ public class JwtFilter extends OncePerRequestFilter {
 
         } catch (Exception e) {
 
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setStatus(
+                    HttpServletResponse.SC_UNAUTHORIZED
+            );
             return;
         }
 
-        filterChain.doFilter(request, response);
+        filterChain.doFilter(
+                request,
+                response
+        );
     }
 }
